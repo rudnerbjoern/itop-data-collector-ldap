@@ -79,6 +79,22 @@ class iTopPersonLDAPCollector extends LDAPCollector
         return $aList;
     }
 
+    protected function GetManager(string $managerDN): string
+    {
+        $aAttributes = ['distinguishedName', 'mail'];
+        $sFilter = "(distinguishedName=" . ldap_escape($managerDN, '', LDAP_ESCAPE_FILTER) . ")";
+        $aList = $this->Search($this->sLDAPDN, $sFilter, $aAttributes);
+
+        // Check presence of email address
+        if (isset($aList[0]['mail'][0])) {
+            return $aList[0]['mail'][0];
+        }
+
+        // Log missing email address
+        Utils::Log(LOG_WARNING, "Manager DN '$managerDN' has no mail address.");
+        return '';
+    }
+
     public function Prepare()
     {
 	    $bRet = parent::Prepare();
@@ -113,6 +129,15 @@ class iTopPersonLDAPCollector extends LDAPCollector
 
                     $aValues[$sFieldCode] = $sFieldValue;
                 }
+
+                // Find Manager email address
+                if (!empty($aValues['manager_id'])) {
+                    $sManager = $aValues['manager_id'];
+                    $aValues['manager_id'] = $this->GetManager($sManager);
+                } else {
+                    $aValues['manager_id'] = '';
+                }
+
                 $this->aPersons[] = $aValues;
             }
         }

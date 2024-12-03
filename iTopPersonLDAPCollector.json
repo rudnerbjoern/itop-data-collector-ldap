@@ -65,7 +65,7 @@
 		},
 		{
 			"attcode": "manager_id",
-			"update": "0",
+			"update": "1",
 			"reconcile": "0",
 			"update_policy": "master_locked",
 			"reconciliation_attcode": "email",
